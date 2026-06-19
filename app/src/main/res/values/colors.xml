@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#FF00D4FF</color>
+    <color name="primary_dark">#FF0099CC</color>
+    <color name="accent">#FF00FF88</color>
+    <color name="bg_dark">#FF1A1A2E</color>
+    <color name="bg_darker">#FF0D0D1A</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#80FFFFFF</color>
+    <color name="log_java">#FF00D4FF</color>
+    <color name="log_native">#FFFF00FF</color>
+    <color name="log_system">#FFFFFFFF</color>
+    <color name="log_error">#FFFF4444</color>
+    <color name="log_load">#FFFFAA00</color>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DexInterceptor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF00D4FF</item>
+        <item name="colorPrimaryVariant">#FF0099CC</item>
+        <item name="colorSecondary">#FF00FF88</item>
+        <item name="android:windowBackground">#FF1A1A2E</item>
+        <item name="android:statusBarColor">#FF0D0D1A</item>
+        <item name="android:navigationBarColor">#FF0D0D1A</item>
+    </style>
+
+    <style name="Theme.DexInterceptor.Translucent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:statusBarColor">#CC0D0D1A</item>
+    </style>
+</resources>

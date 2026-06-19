@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF1A1A2E"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DexInterceptor"
+            android:textColor="#FF00D4FF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Xposed Module - Java &amp; Native Interceptor"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TARGET APPLICATION"
+            android:textColor="#FF00D4FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/edit_target_package"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="com.example.app"
+                android:textColor="#FFFFFFFF"
+                android:textColorHint="#60FFFFFF"
+                android:background="@drawable/edit_bg"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:textSize="14sp"
+                android:singleLine="true"
+                android:inputType="text"
+                android:imeOptions="actionNext" />
+
+            <Button
+                android:id="@+id/btn_pick_app"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="PICK"
+                android:textColor="#FF1A1A2E"
+                android:backgroundTint="#FF00D4FF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="JAVA CLASS TARGETS"
+            android:textColor="#FF00D4FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_class_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="(no classes added)"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:background="#20FFFFFF"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/edit_target_classes"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="com.example.MyClass"
+                android:textColor="#FFFFFFFF"
+                android:textColorHint="#60FFFFFF"
+                android:background="@drawable/edit_bg"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:textSize="14sp"
+                android:singleLine="true"
+                android:inputType="text"
+                android:imeOptions="actionNext" />
+
+            <Button
+                android:id="@+id/btn_add_class"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="ADD"
+                android:textColor="#FF1A1A2E"
+                android:backgroundTint="#FF00FF88"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NATIVE LIBRARY TARGETS"
+            android:textColor="#FF00D4FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_lib_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="(no libraries added)"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:background="#20FFFFFF"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/edit_target_libs"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="libmain.so"
+                android:textColor="#FFFFFFFF"
+                android:textColorHint="#60FFFFFF"
+                android:background="@drawable/edit_bg"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:textSize="14sp"
+                android:singleLine="true"
+                android:inputType="text"
+                android:imeOptions="actionDone" />
+
+            <Button
+                android:id="@+id/btn_add_lib"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="ADD"
+                android:textColor="#FF1A1A2E"
+                android:backgroundTint="#FFFFAA00"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OPTIONS"
+            android:textColor="#FF00D4FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Switch
+                android:id="@+id/switch_hook_all"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Hook ALL classes (auto)"
+                android:textColor="#FFFFFFFF"
+                android:textSize="14sp"
+                android:thumbTint="#FF00D4FF" />
+
+            <Switch
+                android:id="@+id/switch_enable_native"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Enable native hooks"
+                android:textColor="#FFFFFFFF"
+                android:textSize="14sp"
+                android:checked="true"
+                android:thumbTint="#FF00D4FF" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: NO TARGET"
+            android:textColor="#FFFF4444"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btn_launch_interceptor"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="LAUNCH INTERCEPTOR"
+            android:textColor="#FF1A1A2E"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FF00D4FF"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HOW TO USE:\n1. Enable this module in LSPosed/EdXposed\n2. Select target app scope\n3. Enter target class names or library names\n4. Open target app\n5. Press LAUNCH INTERCEPTOR to see logs"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp"
+            android:lineSpacingExtra="4dp"
+            android:padding="12dp"
+            android:background="#10FFFFFF"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+</ScrollView>
