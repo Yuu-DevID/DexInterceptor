@@ -5,13 +5,17 @@
     android:orientation="vertical"
     android:background="#FF0D0D1A">
 
+    <!-- Top bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="#FF1A1A3E"
-        android:padding="12dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/tv_header"
@@ -20,65 +24,215 @@
             android:layout_weight="1"
             android:text="DexInterceptor | ..."
             android:textColor="#FF00D4FF"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:singleLine="true"
             android:ellipsize="start" />
 
         <Button
-            android:id="@+id/btn_filter"
+            android:id="@+id/btn_clear"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="CONFIG"
+            android:layout_height="32dp"
+            android:text="CLEAR"
             android:textColor="#FFFFFFFF"
-            android:textSize="10sp"
-            android:backgroundTint="#4000D4FF"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginEnd="8dp" />
+            android:textSize="9sp"
+            android:backgroundTint="#40FF4444"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="4dp" />
 
         <Button
             android:id="@+id/btn_export"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_height="32dp"
             android:text="EXPORT"
             android:textColor="#FFFFFFFF"
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:backgroundTint="#4000FF88"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginEnd="8dp" />
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="4dp" />
 
         <Button
-            android:id="@+id/btn_clear"
+            android:id="@+id/btn_filter"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="CLEAR"
+            android:layout_height="32dp"
+            android:text="CONFIG"
             android:textColor="#FFFFFFFF"
-            android:textSize="10sp"
-            android:backgroundTint="#40FF4444"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp" />
+            android:textSize="9sp"
+            android:backgroundTint="#4000D4FF"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp" />
     </LinearLayout>
 
-    <ScrollView
-        android:id="@+id/scroll_log"
+    <!-- Search bar -->
+    <EditText
+        android:id="@+id/edit_search"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:scrollbars="vertical">
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="4dp"
+        android:hint="Search logs..."
+        android:textColorHint="#40FFFFFF"
+        android:textColor="#FFFFFFFF"
+        android:textSize="13sp"
+        android:singleLine="true"
+        android:background="@drawable/edit_bg"
+        android:paddingStart="32dp"
+        android:paddingEnd="12dp"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="8dp"
+        android:inputType="text"
+        android:imeOptions="actionSearch" />
+
+    <!-- Filter chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="6dp"
+        android:background="#FF0D0D1A">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chip_all"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="All"
+                android:textColor="#FF1A1A2E"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:backgroundTint="#FF00D4FF"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:gravity="center"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/chip_java"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="Java"
+                android:textColor="#FF00D4FF"
+                android:textSize="11sp"
+                android:background="#2000D4FF"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:gravity="center"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/chip_native"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="Native"
+                android:textColor="#FFFF00FF"
+                android:textSize="11sp"
+                android:background="#20FF00FF"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:gravity="center"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/chip_system"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="System"
+                android:textColor="#FFAABBCC"
+                android:textSize="11sp"
+                android:background="#20AABBCC"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:gravity="center"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/chip_error"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="Error"
+                android:textColor="#FFFF4444"
+                android:textSize="11sp"
+                android:background="#20FF4444"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:gravity="center" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#20FFFFFF" />
+
+    <!-- Log count and auto-scroll indicator -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:background="#0A0A1A">
 
         <TextView
-            android:id="@+id/tv_log_output"
-            android:layout_width="match_parent"
+            android:id="@+id/tv_log_count"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="#FFB0B0C0"
-            android:textSize="11sp"
-            android:fontFamily="monospace"
-            android:padding="8dp"
-            android:textIsSelectable="true"
-            android:gravity="bottom"
-            android:text="Waiting for intercepted calls...\n" />
-    </ScrollView>
+            android:layout_weight="1"
+            android:text="0 entries"
+            android:textColor="#50FFFFFF"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/btn_auto_scroll"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:text="⬇ AUTO"
+            android:textColor="#FFFFFFFF"
+            android:textSize="9sp"
+            android:backgroundTint="#4000FF88"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
+    </LinearLayout>
+
+    <!-- Log list -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_log"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp" />
+
+        <!-- Empty state -->
+        <TextView
+            android:id="@+id/tv_empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="Waiting for intercepted calls...\n\nOpen the target app to start intercepting"
+            android:textColor="#40FFFFFF"
+            android:textSize="14sp"
+            android:lineSpacingExtra="4dp" />
+    </FrameLayout>
 
 </LinearLayout>

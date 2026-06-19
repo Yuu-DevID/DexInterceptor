@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 import java.io.File;
 import java.io.IOException;
-import java.util LinkedHashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;

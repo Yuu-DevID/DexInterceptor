@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FF141428"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Color indicator dot -->
+        <View
+            android:id="@+id/view_type_dot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:background="@drawable/dot_circle"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Timestamp -->
+        <TextView
+            android:id="@+id/tv_timestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#80FFFFFF"
+            android:textSize="10sp"
+            android:fontFamily="monospace"
+            android:layout_marginEnd="6dp"
+            tools:text="14:23:45.123" />
+
+        <!-- Type badge -->
+        <TextView
+            android:id="@+id/tv_type_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="#FF1A1A2E"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp"
+            android:layout_marginEnd="6dp"
+            tools:text="JAVA" />
+
+        <!-- Elapsed time badge (optional) -->
+        <TextView
+            android:id="@+id/tv_elapsed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#80AAFF00"
+            android:textSize="9sp"
+            android:fontFamily="monospace"
+            android:background="#1500FF88"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp"
+            android:layout_marginEnd="4dp"
+            android:visibility="gone"
+            tools:text="125us"
+            tools:visibility="visible" />
+
+        <!-- Error indicator (optional) -->
+        <TextView
+            android:id="@+id/tv_error_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFF4444"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:background="#20FF4444"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp"
+            android:visibility="gone"
+            tools:text="THREW"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <!-- Method name / title -->
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFEEEEFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="14dp"
+        tools:text="↳ [JAVA] MainActivity→onCreate(Bundle)" />
+
+    <!-- Arguments / detail -->
+    <TextView
+        android:id="@+id/tv_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#70AAAAAA"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="14dp"
+        android:visibility="gone"
+        tools:text="args: String=hello"
+        tools:visibility="visible" />
+
+</LinearLayout>

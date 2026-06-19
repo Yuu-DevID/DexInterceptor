@@ -18,6 +18,20 @@
         android:theme="@style/Theme.DexInterceptor"
         tools:targetApi="35">
 
+        <!-- Xposed Module Metadata -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="DexInterceptor - Java & Native method interceptor. Intercepts class methods, native calls like DevTools Network tab." />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="93" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/xposed_scope" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -32,7 +46,7 @@
             android:name=".ui.InterceptorActivity"
             android:exported="false"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.DexInterceptor.Translucent" />
+            android:theme="@style/Theme.DexInterceptor" />
 
         <service
             android:name=".service.InterceptService"

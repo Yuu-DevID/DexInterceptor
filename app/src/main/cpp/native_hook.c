@@ -4,9 +4,28 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <elf.h>
+#include <link.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <android/log.h>
+
+/* Architecture-specific ELF relocation types */
+#if defined(__aarch64__)
+  #define R_JUMP_SLOT R_AARCH64_JUMP_SLOT
+#elif defined(__arm__)
+  #define R_JUMP_SLOT R_ARM_JUMP_SLOT
+#elif defined(__x86_64__)
+  #define R_JUMP_SLOT R_X86_64_JUMP_SLOT
+#elif defined(__i386__)
+  #define R_JUMP_SLOT R_386_JMP_SLOT
+#endif
+
+#ifndef ELF64_R_SYM
+  #define ELF64_R_SYM(info) ((info) >> 32)
+#endif
+#ifndef ELF64_R_TYPE
+  #define ELF64_R_TYPE(info) ((info) & 0xffffffffL)
+#endif
 
 #define TAG "DexInterceptor_Native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)

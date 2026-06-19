@@ -1,8 +1,10 @@
 package com.yuuxi.interceptor.hooks;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.IBinder;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -15,6 +17,8 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 import com.yuuxi.interceptor.logger.MethodCallLogger;
+import com.yuuxi.interceptor.util.Const;
+
 
 public class JavaMethodHook {
 
@@ -92,10 +96,15 @@ public class JavaMethodHook {
                 String argTypes = buildArgTypes(param.args);
                 String signature = className + "->" + methodName + "(" + argTypes + ")";
 
+                String returnType = "void";
+                if (param.method instanceof java.lang.reflect.Method) {
+                    returnType = ((java.lang.reflect.Method) param.method).getReturnType().getSimpleName();
+                }
+
                 MethodCallLogger.logJavaCall(
                         className,
                         methodName,
-                        param.method.getReturnType().getSimpleName(),
+                        returnType,
                         argTypes,
                         System.identityHashCode(param.thisObject)
                 );
