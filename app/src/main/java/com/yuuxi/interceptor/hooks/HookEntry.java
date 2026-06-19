@@ -69,7 +69,9 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
             MethodCallLogger.logSystem("Java hooks initialized successfully");
         } catch (Throwable t) {
-            MethodCallLogger.logError("Java hook init failed", t);
+            try {
+                MethodCallLogger.logError("Java hook init failed", t);
+            } catch (Throwable ignored) {}
         }
     }
 
@@ -79,7 +81,6 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
         try {
             MethodCallLogger.logSystem("Initializing native hooks...");
-
             NativeHookManager.init(lpparam);
 
             Set<String> targetLibs = getTargetLibs();
@@ -92,7 +93,10 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
             MethodCallLogger.logSystem("Native hooks initialized successfully");
         } catch (Throwable t) {
-            MethodCallLogger.logError("Native hook init failed", t);
+            // Don't let native hook failures crash the target app
+            try {
+                MethodCallLogger.logError("Native hook init failed (continuing without native hooks)", t);
+            } catch (Throwable ignored) {}
         }
     }
 

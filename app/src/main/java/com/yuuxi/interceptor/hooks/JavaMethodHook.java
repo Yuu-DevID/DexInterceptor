@@ -226,10 +226,14 @@ public class JavaMethodHook {
             XC_MethodHook loadHook = new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
-                    String libName = (String) param.args[param.args.length - 1];
-                    if (libName instanceof String) {
-                        MethodCallLogger.logNativeLoad(libName, "Runtime.loadLibrary");
-                    }
+                    try {
+                        if (param.args == null || param.args.length == 0) return;
+                        Object lastArg = param.args[param.args.length - 1];
+                        if (lastArg instanceof String) {
+                            String libName = (String) lastArg;
+                            MethodCallLogger.logNativeLoad(libName, "Runtime.loadLibrary");
+                        }
+                    } catch (Throwable ignored) {}
                 }
             };
 
@@ -257,8 +261,14 @@ public class JavaMethodHook {
             XC_MethodHook hook = new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
-                    String libName = (String) param.args[0];
-                    MethodCallLogger.logNativeLoad(libName, "System.loadLibrary");
+                    try {
+                        if (param.args == null || param.args.length == 0) return;
+                        Object arg0 = param.args[0];
+                        if (arg0 instanceof String) {
+                            String libName = (String) arg0;
+                            MethodCallLogger.logNativeLoad(libName, "System.loadLibrary");
+                        }
+                    } catch (Throwable ignored) {}
                 }
             };
 
