@@ -14,7 +14,6 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import com.yuuxi.interceptor.logger.MethodCallLogger;
 
 public class NativeHookManager {
-
     private static final String TAG = "NativeHookManager";
     private static final Set<String> monitoredLibs = new HashSet<>();
     private static final Set<String> hookedLibs = new HashSet<>();
@@ -24,22 +23,30 @@ public class NativeHookManager {
     public static void init(XC_LoadPackage.LoadPackageParam lpparam) {
         sLpparam = lpparam;
         try {
+            // Try to load the native interceptor library
+            // This may fail if the lib isn't built — that's OK
             System.loadLibrary("interceptor_native");
             sNativeLibLoaded = true;
             MethodCallLogger.logSystem("Native interceptor lib loaded");
         } catch (Throwable t) {
-            MethodCallLogger.logError("Failed to load interceptor_native", t);
+            // Don't crash — just disable native hooks
             sNativeLibLoaded = false;
+            try {
+                MethodCallLogger.logSystem("Native interceptor lib not available (Java-only mode)");
+            } catch (Throwable ignored) {}
         }
     }
 
     public static void monitorLibrary(String libName) {
+        if (libName == null || libName.isEmpty()) return;
         monitoredLibs.add(libName);
-        MethodCallLogger.logSystem("Monitoring native library: " + libName);
+        try {
+            MethodCallLogger.logSystem("Monitoring native library: " + libName);
+        } catch (Throwable ignored) {}
     }
 
     public static void onLibraryLoaded(String libName, long handle) {
-        if (hookedLibs.contains(libName)) return;
+        if (libName == null || hookedLibs.contains(libName)) return;
 
         if (monitoredLibs.isEmpty() || monitoredLibs.contains(libName)) {
             hookNativeLibrary(libName, handle);
@@ -48,7 +55,9 @@ public class NativeHookManager {
     }
 
     private static void hookNativeLibrary(String libName, long handle) {
-        MethodCallLogger.logSystem("Native lib loaded: " + libName + " @ 0x" + Long.toHexString(handle));
+        try {
+            MethodCallLogger.logSystem("Native lib loaded: " + libName + " @ 0x" + Long.toHexString(handle));
+        } catch (Throwable ignored) {}
 
         if (!sNativeLibLoaded) return;
 
@@ -60,14 +69,16 @@ public class NativeHookManager {
                 }
             }
         } catch (Throwable t) {
-            MethodCallLogger.logError("hookNativeLibrary failed: " + libName, t);
+            try {
+                MethodCallLogger.logError("hookNativeLibrary failed: " + libName, t);
+            } catch (Throwable ignored) {}
         }
     }
 
     private static long[] getExportedFunctions(String libName) {
         try {
-            Method m = Class.forName("com.yuuxi.interceptor.NativeBridge")
-                    .getMethod("getExportedFunctions", String.class);
+            Class<?> bridgeClass = Class.forName("com.yuuxi.interceptor.NativeBridge");
+            Method m = bridgeClass.getMethod("getExportedFunctions", String.class);
             Object result = m.invoke(null, libName);
             if (result instanceof long[]) {
                 return (long[]) result;
@@ -78,20 +89,26 @@ public class NativeHookManager {
 
     private static void hookNativeFunctionAt(String libName, long funcAddr) {
         try {
-            Method m = Class.forName("com.yuuxi.interceptor.NativeBridge")
-                    .getMethod("hookFunction", String.class, long.class);
+            Class<?> bridgeClass = Class.forName("com.yuuxi.interceptor.NativeBridge");
+            Method m = bridgeClass.getMethod("hookFunction", String.class, long.class);
             m.invoke(null, libName, funcAddr);
         } catch (Throwable t) {
-            MethodCallLogger.logError("hookNativeFunctionAt failed", t);
+            try {
+                MethodCallLogger.logError("hookNativeFunctionAt failed", t);
+            } catch (Throwable ignored) {}
         }
     }
 
     public static void logNativeCall(String libName, String funcName, long address, String args) {
-        MethodCallLogger.logNativeCall(libName, funcName, address, args);
+        try {
+            MethodCallLogger.logNativeCall(libName, funcName, address, args);
+        } catch (Throwable ignored) {}
     }
 
     public static void logNativeReturn(String libName, String funcName, long retval, long elapsedUs) {
-        MethodCallLogger.logNativeReturn(libName, funcName, retval, elapsedUs);
+        try {
+            MethodCallLogger.logNativeReturn(libName, funcName, retval, elapsedUs);
+        } catch (Throwable ignored) {}
     }
 
     public static Set<String> getMonitoredLibs() {

@@ -23,29 +23,47 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
-        sPrefs = new XSharedPreferences(Const.MY_PACKAGE, Const.PREFS_NAME);
-        sPrefs.makeWorldReadable();
+        try {
+            sPrefs = new XSharedPreferences(Const.MY_PACKAGE, Const.PREFS_NAME);
+            sPrefs.makeWorldReadable();
+        } catch (Throwable t) {
+            // XSharedPreferences may fail on some ROMs — not critical
+        }
     }
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         if (lpparam.packageName.equals(Const.MY_PACKAGE)) return;
 
-        sPrefs.reload();
+        // Safely reload prefs
+        try {
+            if (sPrefs != null) sPrefs.reload();
+        } catch (Throwable ignored) {}
 
-        String targetPackage = sPrefs.getString(Const.KEY_TARGET_PACKAGE, "");
+        String targetPackage = "";
+        try {
+            targetPackage = sPrefs.getString(Const.KEY_TARGET_PACKAGE, "");
+        } catch (Throwable ignored) {}
+
         if (!targetPackage.isEmpty() && !lpparam.packageName.equals(targetPackage)) {
             return;
         }
 
-        File logDir = new File(lpparam.appInfo.dataDir, "interceptor_logs");
-        if (!logDir.exists()) logDir.mkdirs();
+        try {
+            File logDir = new File(lpparam.appInfo.dataDir, "interceptor_logs");
+            if (!logDir.exists()) logDir.mkdirs();
 
-        MethodCallLogger.init(logDir, lpparam.packageName);
-        MethodCallLogger.logSystem("=== DexInterceptor active on " + lpparam.packageName + " ===");
+            MethodCallLogger.init(logDir, lpparam.packageName);
+            MethodCallLogger.logSystem("=== DexInterceptor active on " + lpparam.packageName + " ===");
 
-        initJavaHooks(lpparam);
-        initNativeHooks(lpparam);
+            initJavaHooks(lpparam);
+            initNativeHooks(lpparam);
+        } catch (Throwable t) {
+            // NEVER let interceptor crash the target app
+            try {
+                android.util.Log.e("DexInterceptor", "handleLoadPackage failed", t);
+            } catch (Throwable ignored) {}
+        }
     }
 
     private void initJavaHooks(XC_LoadPackage.LoadPackageParam lpparam) {
@@ -54,13 +72,19 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
             Set<String> targetClasses = getTargetClasses();
             for (String className : targetClasses) {
-                JavaMethodHook.hookClass(className, lpparam.classLoader);
+                try {
+                    JavaMethodHook.hookClass(className, lpparam.classLoader);
+                } catch (Throwable ignored) {}
             }
 
-            String wildcard = sPrefs.getString(Const.KEY_HOOK_ALL, "");
+            String wildcard = "";
+            try {
+                wildcard = sPrefs.getString(Const.KEY_HOOK_ALL, "");
+            } catch (Throwable ignored) {}
+
             if (wildcard.equals("*")) {
                 JavaMethodHook.hookAllClasses(lpparam);
-                MethodCallLogger.logSystem("Hook mode: ALL classes");
+                MethodCallLogger.logSystem("Hook mode: Activity auto-hook");
             }
 
             JavaMethodHook.hookActivityLifecycle(lpparam.classLoader);
@@ -76,7 +100,12 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
     }
 
     private void initNativeHooks(XC_LoadPackage.LoadPackageParam lpparam) {
-        sNativeEnabled = sPrefs.getBoolean(Const.KEY_ENABLE_NATIVE, true);
+        try {
+            sNativeEnabled = sPrefs.getBoolean(Const.KEY_ENABLE_NATIVE, true);
+        } catch (Throwable ignored) {
+            sNativeEnabled = false;
+        }
+
         if (!sNativeEnabled) return;
 
         try {
@@ -85,7 +114,9 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
             Set<String> targetLibs = getTargetLibs();
             for (String libName : targetLibs) {
-                NativeHookManager.monitorLibrary(libName);
+                try {
+                    NativeHookManager.monitorLibrary(libName);
+                } catch (Throwable ignored) {}
             }
 
             JavaMethodHook.hookRuntimeLoadLibrary(lpparam.classLoader);
@@ -102,25 +133,29 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
     private Set<String> getTargetClasses() {
         Set<String> classes = new LinkedHashSet<>();
-        String stored = sPrefs.getString(Const.KEY_TARGET_CLASSES, "");
-        if (!stored.isEmpty()) {
-            for (String c : stored.split("\\|")) {
-                String trimmed = c.trim();
-                if (!trimmed.isEmpty()) classes.add(trimmed);
+        try {
+            String stored = sPrefs.getString(Const.KEY_TARGET_CLASSES, "");
+            if (!stored.isEmpty()) {
+                for (String c : stored.split("\\|")) {
+                    String trimmed = c.trim();
+                    if (!trimmed.isEmpty()) classes.add(trimmed);
+                }
             }
-        }
+        } catch (Throwable ignored) {}
         return classes;
     }
 
     private Set<String> getTargetLibs() {
         Set<String> libs = new LinkedHashSet<>();
-        String stored = sPrefs.getString(Const.KEY_TARGET_LIBS, "");
-        if (!stored.isEmpty()) {
-            for (String l : stored.split("\\|")) {
-                String trimmed = l.trim();
-                if (!trimmed.isEmpty()) libs.add(trimmed);
+        try {
+            String stored = sPrefs.getString(Const.KEY_TARGET_LIBS, "");
+            if (!stored.isEmpty()) {
+                for (String l : stored.split("\\|")) {
+                    String trimmed = l.trim();
+                    if (!trimmed.isEmpty()) libs.add(trimmed);
+                }
             }
-        }
+        } catch (Throwable ignored) {}
         return libs;
     }
 }

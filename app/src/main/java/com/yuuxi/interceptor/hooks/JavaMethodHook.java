@@ -10,6 +10,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -24,6 +26,25 @@ public class JavaMethodHook {
 
     private static final String TAG = "JavaHook";
 
+    // Recursion protection — prevents infinite loops when hooks call themselves
+    private static final ThreadLocal<Integer> HOOK_DEPTH = ThreadLocal.withInitial(() -> 0);
+    private static final int MAX_HOOK_DEPTH = 50;
+
+    // Methods to skip — these are called millions of times and cause crashes
+    private static final Set<String> SKIP_METHODS = new HashSet<>(Arrays.asList(
+        "toString", "hashCode", "equals", "getClass", "notify", "notifyAll",
+        "wait", "clone", "finalize", "access$000", "access$100", "access$200",
+        "access$300", "access$400", "access$500", "access$600", "access$700"
+    ));
+
+    // Packages to skip entirely — Android framework internals
+    private static final Set<String> SKIP_PACKAGES = new HashSet<>(Arrays.asList(
+        "android.os.", "android.view.", "android.widget.", "android.graphics.",
+        "android.text.", "android.util.", "android.content.res.",
+        "android.app.", "java.lang.", "java.util.", "java.io.",
+        "java.net.", "java.nio.", "javax.", "sun.", "dalvik."
+    ));
+
     public static void hookClass(String className, ClassLoader cl) {
         try {
             Class<?> targetClass = XposedHelpers.findClass(className, cl);
@@ -37,8 +58,9 @@ public class JavaMethodHook {
     public static void hookAllClasses(XC_LoadPackage.LoadPackageParam lpparam) {
         try {
             ClassLoader cl = lpparam.classLoader;
-            String pkgPrefix = lpparam.packageName;
 
+            // Hook Instrumentation.newActivity to intercept Activity creation
+            // This is SAFER than hooking ALL classes — only hooks when an Activity is created
             XposedHelpers.findAndHookMethod(
                     "android.app.Instrumentation", cl,
                     "newActivity", Class.class, Context.class, IBinder.class,
@@ -46,14 +68,19 @@ public class JavaMethodHook {
                     new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) {
-                            Activity activity = (Activity) param.getResult();
-                            if (activity != null) {
-                                String activityName = activity.getClass().getName();
-                                try {
+                            try {
+                                Activity activity = (Activity) param.getResult();
+                                if (activity != null) {
                                     Class<?> activityClass = activity.getClass();
-                                    hookAllMethodsOfClass(activityClass, activityClass.getName());
-                                } catch (Throwable ignored) {}
-                            }
+                                    String name = activityClass.getName();
+
+                                    // Skip framework classes
+                                    if (!shouldSkipClass(name)) {
+                                        hookAllMethodsOfClass(activityClass, name);
+                                        MethodCallLogger.logSystem("Auto-hooked Activity: " + name);
+                                    }
+                                }
+                            } catch (Throwable ignored) {}
                         }
                     }
             );
@@ -62,12 +89,25 @@ public class JavaMethodHook {
         }
     }
 
+    private static boolean shouldSkipClass(String className) {
+        for (String pkg : SKIP_PACKAGES) {
+            if (className.startsWith(pkg)) return true;
+        }
+        return false;
+    }
+
+    private static boolean shouldSkipMethod(String methodName) {
+        return SKIP_METHODS.contains(methodName);
+    }
+
     public static void hookAllMethodsOfClass(Class<?> clazz, String displayName) {
         try {
             Method[] methods = clazz.getDeclaredMethods();
             for (Method method : methods) {
                 if (Modifier.isAbstract(method.getModifiers())) continue;
                 if (Modifier.isNative(method.getModifiers())) continue;
+                if (shouldSkipMethod(method.getName())) continue;
+                if (shouldSkipClass(method.getDeclaringClass().getName())) continue;
 
                 try {
                     XC_MethodHook hook = createMethodHook(displayName, method.getName());
@@ -89,49 +129,58 @@ public class JavaMethodHook {
 
     private static XC_MethodHook createMethodHook(String className, String methodName) {
         return new XC_MethodHook() {
-            private final long startTime = System.nanoTime();
-
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-                String argTypes = buildArgTypes(param.args);
-                String signature = className + "->" + methodName + "(" + argTypes + ")";
+                // Recursion protection
+                int depth = HOOK_DEPTH.get();
+                if (depth > MAX_HOOK_DEPTH) return;
+                HOOK_DEPTH.set(depth + 1);
 
-                String returnType = "void";
-                if (param.method instanceof java.lang.reflect.Method) {
-                    returnType = ((java.lang.reflect.Method) param.method).getReturnType().getSimpleName();
-                }
+                try {
+                    String argTypes = buildArgTypes(param.args);
+                    String returnType = "void";
+                    if (param.method instanceof java.lang.reflect.Method) {
+                        returnType = ((java.lang.reflect.Method) param.method).getReturnType().getSimpleName();
+                    }
 
-                MethodCallLogger.logJavaCall(
-                        className,
-                        methodName,
-                        returnType,
-                        argTypes,
-                        System.identityHashCode(param.thisObject)
-                );
+                    MethodCallLogger.logJavaCall(
+                            className,
+                            methodName,
+                            returnType,
+                            argTypes,
+                            System.identityHashCode(param.thisObject)
+                    );
 
-                sendLiveUpdate("CALL", signature, param.args);
+                    String signature = className + "->" + methodName + "(" + argTypes + ")";
+                    sendLiveUpdate("CALL", signature, param.args);
+                } catch (Throwable ignored) {}
             }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
-                long elapsed = (System.nanoTime() - startTime) / 1000;
-                String resultStr = param.getThrowable() != null
-                        ? "ERR:" + param.getThrowable().getMessage()
-                        : summarize(param.getResult());
+                try {
+                    String resultStr = param.getThrowable() != null
+                            ? "ERR:" + param.getThrowable().getMessage()
+                            : summarize(param.getResult());
 
-                MethodCallLogger.logJavaReturn(
-                        className,
-                        methodName,
-                        resultStr,
-                        elapsed,
-                        param.getThrowable() != null
-                );
-
-                if (param.getThrowable() != null) {
-                    MethodCallLogger.logError(
-                            className + "->" + methodName + " threw",
-                            param.getThrowable()
+                    MethodCallLogger.logJavaReturn(
+                            className,
+                            methodName,
+                            resultStr,
+                            0,
+                            param.getThrowable() != null
                     );
+
+                    if (param.getThrowable() != null) {
+                        MethodCallLogger.logError(
+                                className + "->" + methodName + " threw",
+                                param.getThrowable()
+                        );
+                    }
+                } catch (Throwable ignored) {}
+                finally {
+                    // Decrement recursion depth
+                    HOOK_DEPTH.set(Math.max(0, HOOK_DEPTH.get() - 1));
                 }
             }
         };
@@ -142,13 +191,23 @@ public class JavaMethodHook {
             XC_MethodHook lifecycleHook = new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
-                    Activity activity = (Activity) param.thisObject;
-                    String cls = activity.getClass().getSimpleName();
-                    String method = param.method.getName();
-                    MethodCallLogger.logSystem("[Lifecycle] " + cls + "." + method);
+                    try {
+                        int depth = HOOK_DEPTH.get();
+                        if (depth > MAX_HOOK_DEPTH) return;
+                        HOOK_DEPTH.set(depth + 1);
+
+                        Activity activity = (Activity) param.thisObject;
+                        String cls = activity.getClass().getSimpleName();
+                        String method = param.method.getName();
+                        MethodCallLogger.logSystem("[Lifecycle] " + cls + "." + method);
+                    } catch (Throwable ignored) {}
+                    finally {
+                        HOOK_DEPTH.set(Math.max(0, HOOK_DEPTH.get() - 1));
+                    }
                 }
             };
 
+            // Hook each lifecycle method individually — NO duplicates
             String[] lifecycleMethods = {
                     "onCreate", "onStart", "onResume",
                     "onPause", "onStop", "onDestroy",
@@ -157,26 +216,21 @@ public class JavaMethodHook {
 
             for (String m : lifecycleMethods) {
                 try {
-                    XposedHelpers.findAndHookMethod(
-                            Activity.class, m,
-                            Bundle.class,
-                            lifecycleHook
-                    );
+                    if (m.equals("onCreate") || m.equals("onResume") || m.equals("onPause")) {
+                        XposedHelpers.findAndHookMethod(
+                                Activity.class, m, Bundle.class, lifecycleHook);
+                    } else if (m.equals("onStart") || m.equals("onStop")) {
+                        XposedHelpers.findAndHookMethod(
+                                Activity.class, m, lifecycleHook);
+                    } else if (m.equals("onDestroy")) {
+                        XposedHelpers.findAndHookMethod(
+                                Activity.class, m, lifecycleHook);
+                    } else if (m.equals("onSaveInstanceState")) {
+                        XposedHelpers.findAndHookMethod(
+                                Activity.class, m, Bundle.class, lifecycleHook);
+                    }
                 } catch (Throwable ignored) {}
             }
-
-            XposedHelpers.findAndHookMethod(
-                    Activity.class, "onCreate", Bundle.class,
-                    lifecycleHook
-            );
-            XposedHelpers.findAndHookMethod(
-                    Activity.class, "onResume",
-                    lifecycleHook
-            );
-            XposedHelpers.findAndHookMethod(
-                    Activity.class, "onPause",
-                    lifecycleHook
-            );
         } catch (Throwable t) {
             MethodCallLogger.logError("hookActivityLifecycle failed", t);
         }
@@ -187,9 +241,18 @@ public class JavaMethodHook {
             XC_MethodHook intentHook = new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
-                    String method = param.method.getName();
-                    String result = summarize(param.getResult());
-                    MethodCallLogger.logSystem("[Intent] " + method + " -> " + result);
+                    try {
+                        int depth = HOOK_DEPTH.get();
+                        if (depth > MAX_HOOK_DEPTH) return;
+                        HOOK_DEPTH.set(depth + 1);
+
+                        String method = param.method.getName();
+                        String result = summarize(param.getResult());
+                        MethodCallLogger.logSystem("[Intent] " + method + " -> " + result);
+                    } catch (Throwable ignored) {}
+                    finally {
+                        HOOK_DEPTH.set(Math.max(0, HOOK_DEPTH.get() - 1));
+                    }
                 }
             };
 
@@ -207,8 +270,17 @@ public class JavaMethodHook {
             XC_MethodHook bundleHook = new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
-                    String method = param.method.getName();
-                    MethodCallLogger.logSystem("[Bundle] " + method + " args=" + summarize(param.args));
+                    try {
+                        int depth = HOOK_DEPTH.get();
+                        if (depth > MAX_HOOK_DEPTH) return;
+                        HOOK_DEPTH.set(depth + 1);
+
+                        String method = param.method.getName();
+                        MethodCallLogger.logSystem("[Bundle] " + method + " args=" + summarize(param.args));
+                    } catch (Throwable ignored) {}
+                    finally {
+                        HOOK_DEPTH.set(Math.max(0, HOOK_DEPTH.get() - 1));
+                    }
                 }
             };
 
@@ -227,6 +299,10 @@ public class JavaMethodHook {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     try {
+                        int depth = HOOK_DEPTH.get();
+                        if (depth > MAX_HOOK_DEPTH) return;
+                        HOOK_DEPTH.set(depth + 1);
+
                         if (param.args == null || param.args.length == 0) return;
                         Object lastArg = param.args[param.args.length - 1];
                         if (lastArg instanceof String) {
@@ -234,6 +310,9 @@ public class JavaMethodHook {
                             MethodCallLogger.logNativeLoad(libName, "Runtime.loadLibrary");
                         }
                     } catch (Throwable ignored) {}
+                    finally {
+                        HOOK_DEPTH.set(Math.max(0, HOOK_DEPTH.get() - 1));
+                    }
                 }
             };
 
@@ -262,6 +341,10 @@ public class JavaMethodHook {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     try {
+                        int depth = HOOK_DEPTH.get();
+                        if (depth > MAX_HOOK_DEPTH) return;
+                        HOOK_DEPTH.set(depth + 1);
+
                         if (param.args == null || param.args.length == 0) return;
                         Object arg0 = param.args[0];
                         if (arg0 instanceof String) {
@@ -269,6 +352,9 @@ public class JavaMethodHook {
                             MethodCallLogger.logNativeLoad(libName, "System.loadLibrary");
                         }
                     } catch (Throwable ignored) {}
+                    finally {
+                        HOOK_DEPTH.set(Math.max(0, HOOK_DEPTH.get() - 1));
+                    }
                 }
             };
 
@@ -308,8 +394,12 @@ public class JavaMethodHook {
         if (obj.getClass().isArray()) {
             return obj.getClass().getComponentType().getSimpleName() + "[" + java.lang.reflect.Array.getLength(obj) + "]";
         }
-        String s = obj.toString();
-        return s.length() > 200 ? s.substring(0, 200) + "..." : s;
+        try {
+            String s = obj.toString();
+            return s.length() > 200 ? s.substring(0, 200) + "..." : s;
+        } catch (Throwable t) {
+            return obj.getClass().getSimpleName() + "@" + Integer.toHexString(System.identityHashCode(obj));
+        }
     }
 
     private static void sendLiveUpdate(String type, String signature, Object[] args) {
@@ -329,7 +419,9 @@ public class JavaMethodHook {
             android.content.Intent intent = new android.content.Intent(Const.ACTION_LOG_ENTRY);
             intent.putExtra(Const.EXTRA_LOG_JSON, entry);
             intent.setPackage(Const.MY_PACKAGE);
-            MethodCallLogger.getContext().sendBroadcast(intent);
+            if (MethodCallLogger.getContext() != null) {
+                MethodCallLogger.getContext().sendBroadcast(intent);
+            }
         } catch (Throwable ignored) {}
     }
 }

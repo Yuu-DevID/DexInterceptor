@@ -4,12 +4,15 @@ import com.yuuxi.interceptor.hooks.NativeHookManager;
 import com.yuuxi.interceptor.logger.MethodCallLogger;
 
 public class NativeBridge {
+    private static boolean sLoaded = false;
 
     static {
         try {
             System.loadLibrary("interceptor_native");
+            sLoaded = true;
         } catch (Throwable t) {
-            MethodCallLogger.logError("Failed to load interceptor_native", t);
+            // Native lib not available — that's OK, we'll run in Java-only mode
+            sLoaded = false;
         }
     }
 
@@ -20,15 +23,30 @@ public class NativeBridge {
     public static native void nativeLogReturn(String libName, String funcName, long retval, long elapsed);
 
     public static void init() {
-        nativeInit();
+        if (!sLoaded) return;
+        try {
+            nativeInit();
+        } catch (Throwable t) {
+            sLoaded = false;
+        }
     }
 
     public static long[] getExportedFunctions(String libName) {
-        return nativeGetExportedFunctions(libName);
+        if (!sLoaded) return null;
+        try {
+            return nativeGetExportedFunctions(libName);
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     public static boolean hookFunction(String libName, long funcAddr) {
-        return nativeHookFunction(libName, funcAddr) == 0;
+        if (!sLoaded) return false;
+        try {
+            return nativeHookFunction(libName, funcAddr) == 0;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     public static void onNativeCall(String libName, String funcName, long addr, String args) {
