@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="xposed_scope">
-        <item>com.example.targetapp</item>
+        <!-- Required: System Framework for XSharedPreferences to work -->
+        <item>android</item>
+        <!-- Required: System Framework (alternative) -->
+        <item>com.android.systemui</item>
+        <!-- DexInterceptor itself (for self-testing) -->
+        <item>com.yuuxi.interceptor</item>
     </string-array>
 </resources>
